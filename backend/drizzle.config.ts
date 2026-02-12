@@ -1,12 +1,12 @@
-import { defineConfig } from 'drizzle-kit';
+import type { Config } from 'drizzle-kit';
 
-export default defineConfig({
+export default {
   schema: './src/database/schema/*.schema.ts',
   out: './drizzle',
-  dialect: 'postgresql',
+  driver: 'pg',
   dbCredentials: {
-    url: process.env.DATABASE_URL || 'postgresql://authuser:authpassword@localhost:5432/authdb',
+    connectionString: process.env.DATABASE_URL || 'postgresql://authuser:authpassword@postgres:5432/authdb',
   },
   verbose: true,
   strict: true,
-});
+} satisfies Config;
