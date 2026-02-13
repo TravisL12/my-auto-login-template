@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import { theme } from './styles/theme';
@@ -10,17 +9,37 @@ import { Landing } from './pages/Landing';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
-import { fetchCurrentUser } from './store/slices/authSlice';
-import type { AppDispatch, RootState } from './store';
+import { useGetCurrentUserQuery } from './store/api/apiSlice';
+import { selectIsAuthenticated } from './store';
 
 function App() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  // Restore auth state on app mount
-  useEffect(() => {
-    dispatch(fetchCurrentUser());
-  }, [dispatch]);
+  // Check auth on mount - don't retry on failure to prevent infinite loops
+  const { isLoading } = useGetCurrentUserQuery(undefined, {
+    refetchOnMountOrArgChange: false, // Don't refetch if already in cache
+    refetchOnFocus: false, // Don't refetch on window focus initially
+    refetchOnReconnect: false, // Don't refetch on reconnect initially
+  });
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <ThemeProvider theme={theme}>
+        <GlobalStyles />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          fontSize: '2rem',
+          color: '#64ffda'
+        }}>
+          Loading...
+        </div>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>

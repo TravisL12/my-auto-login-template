@@ -6,13 +6,6 @@ export interface User {
   updatedAt?: string;
 }
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-}
-
 export interface RegisterCredentials {
   email: string;
   username: string;
