@@ -1,37 +1,63 @@
-# NestJS Authentication Backend
+# Auto Login Template
 
-A production-ready NestJS backend with JWT authentication using httpOnly cookies, Drizzle ORM, and PostgreSQL.
+A full-stack authentication application with NestJS backend and React frontend, featuring cookie-based JWT authentication, Docker support, and hot reloading in development.
 
 ## Features
 
+### Backend (NestJS)
 - **JWT Authentication** with access and refresh tokens
 - **httpOnly Cookies** for XSS protection
 - **Argon2id Password Hashing** (more secure than bcrypt)
 - **Refresh Token Rotation** with database storage
 - **Drizzle ORM** with PostgreSQL
-- **Docker Compose** for development and production
-- **Hot Reload** enabled in development mode
 - **CORS** configured for frontend integration
+
+### Frontend (React + TypeScript)
+- **Vite** for fast development and builds
+- **Redux Toolkit** for state management
+- **Styled Components** with dark gradient theme
+- **React Router** for navigation
+- **Protected routes** with automatic redirect
+- **Automatic token refresh** via Axios interceptors
+- **Responsive design** with flexbox and CSS Grid
+- **Very large fonts** and modern UI
+
+### DevOps
+- **Docker Compose** for development and production
+- **Hot Reload** enabled for both frontend and backend
+- **Nginx** for production frontend serving
 
 ## Tech Stack
 
+### Backend
 - **NestJS** - Progressive Node.js framework
 - **TypeScript** - Type-safe JavaScript
 - **PostgreSQL 16** - Relational database
 - **Drizzle ORM** - TypeScript ORM
 - **Passport JWT** - Authentication middleware
 - **Argon2** - Password hashing
+
+### Frontend
+- **React 18** - UI library
+- **TypeScript** - Type-safe JavaScript
+- **Vite** - Build tool and dev server
+- **Redux Toolkit** - State management
+- **React Router v6** - Client-side routing
+- **Styled Components** - CSS-in-JS
+- **Axios** - HTTP client
+
+### DevOps
 - **Docker & Docker Compose** - Containerization
+- **Nginx** - Production web server
 
 ## Project Structure
 
 ```
-my-auth-project/
+my-auto-login-template/
 ├── docker-compose.yml              # Development orchestration
 ├── docker-compose.production.yml   # Production orchestration
 ├── .env                            # Development environment variables
-├── .env.production                 # Production environment template
-├── backend/
+├── backend/                        # NestJS backend
 │   ├── Dockerfile                  # Production Docker image
 │   ├── Dockerfile.dev              # Development Docker image
 │   ├── package.json                # Dependencies and scripts
@@ -43,6 +69,24 @@ my-auth-project/
 │       ├── database/               # Database module and schemas
 │       ├── auth/                   # Authentication module
 │       └── users/                  # Users module
+├── frontend/                       # React frontend
+│   ├── Dockerfile                  # Production Docker image (nginx)
+│   ├── Dockerfile.dev              # Development Docker image
+│   ├── nginx.conf                  # Nginx config for production
+│   └── src/
+│       ├── api/                    # API layer (Axios)
+│       ├── components/             # React components
+│       │   ├── auth/               # ProtectedRoute
+│       │   ├── layout/             # Layout, Header, Container
+│       │   └── ui/                 # Box, Button, Input
+│       ├── pages/                  # Page components
+│       │   ├── Landing.tsx
+│       │   ├── Register.tsx
+│       │   ├── Login.tsx
+│       │   └── Dashboard.tsx
+│       ├── store/                  # Redux store & slices
+│       ├── styles/                 # Styled components theme
+│       └── types/                  # TypeScript types
 ```
 
 ## Getting Started
@@ -53,65 +97,90 @@ my-auth-project/
 - Node.js 22+ (for local development)
 - Yarn package manager
 
-### Development Setup
+### Development with Docker (Recommended)
 
-1. **Clone the repository** (if applicable) and navigate to the project:
-   ```bash
-   cd my-auth-project
-   ```
+Run the full stack with hot reloading:
 
-2. **Review environment variables** in `.env` (already configured for development)
+```bash
+# Start all services (PostgreSQL, Backend, Frontend)
+docker-compose up
 
-3. **Start the development environment**:
-   ```bash
-   docker-compose up
-   ```
+# Or run in detached mode
+docker-compose up -d
 
-   This will:
-   - Start PostgreSQL on port 5432
-   - Start the backend on port 3000 with hot reload
-   - Install dependencies automatically
-   - Mount source code for live updates
+# View logs
+docker-compose logs -f
 
-4. **Generate and run database migrations**:
-   ```bash
-   # Enter the backend container
-   docker-compose exec backend sh
+# Stop services
+docker-compose down
+```
 
-   # Generate migrations from schema
-   yarn db:generate
+**Access the application:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **PostgreSQL**: localhost:5432
 
-   # Apply migrations
-   yarn db:migrate
+This will:
+- Start PostgreSQL on port 5432
+- Start the NestJS backend on port 3000 with hot reload
+- Start the React frontend on port 5173 with hot reload
+- Install dependencies automatically
+- Mount source code for live updates
 
-   # Or use push for development (skips migrations)
-   yarn db:push
-   ```
+### Local Development (Without Docker)
 
-5. **Verify the server is running**:
-   ```bash
-   curl http://localhost:3000
-   ```
+#### Backend
+```bash
+cd backend
+
+# Install dependencies
+yarn install
+
+# Start PostgreSQL (or use Docker)
+docker-compose up postgres
+
+# Push database schema
+yarn db:push
+
+# Start development server
+yarn start:dev
+```
+
+#### Frontend
+```bash
+cd frontend
+
+# Install dependencies
+yarn install
+
+# Start development server
+yarn dev
+```
 
 ### Production Setup
 
-1. **Configure production environment**:
-   - Copy `.env.production` and fill in actual values
-   - Generate strong JWT secrets:
-     ```bash
-     node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-     ```
+```bash
+# Build and start production services
+docker-compose -f docker-compose.production.yml up --build -d
+```
 
-2. **Start production services**:
-   ```bash
-   docker-compose -f docker-compose.production.yml up -d
-   ```
+**Access the application:**
+- **Frontend**: http://localhost (port 80)
+- **Backend API**: http://localhost:3000
 
-3. **Run migrations**:
-   ```bash
-   docker-compose -f docker-compose.production.yml exec backend sh
-   yarn db:migrate
-   ```
+Or build locally:
+
+```bash
+# Backend
+cd backend
+yarn build
+yarn start:prod
+
+# Frontend
+cd frontend
+yarn build
+# Serve dist/ folder with a web server
+```
 
 ## API Endpoints
 
@@ -312,51 +381,28 @@ docker-compose down -v
 - **Input Validation** - class-validator DTOs
 - **JWT Expiration** - Access: 15min, Refresh: 7 days
 
-## Frontend Integration
+## Frontend Routes
 
-When building a React frontend:
+- `/` - Landing page with links to register/login
+- `/register` - Registration form (email, username, password)
+- `/login` - Login form (email, password)
+- `/dashboard` - Protected dashboard showing user info
 
-1. **Install dependencies**:
-   ```bash
-   npm install axios
-   # or
-   yarn add axios
-   ```
+## Authentication Flow
 
-2. **Configure axios with credentials**:
-   ```typescript
-   import axios from 'axios';
+1. **Registration/Login**: User submits credentials → Backend returns user object and sets httpOnly cookies
+2. **Protected Routes**: Frontend checks Redux auth state → Redirects to /login if not authenticated
+3. **Token Refresh**: Axios interceptor catches 401 errors → Automatically refreshes tokens → Retries original request
+4. **Logout**: Clears cookies on backend and Redux state on frontend → Redirects to homepage
 
-   const api = axios.create({
-     baseURL: 'http://localhost:3000',
-     withCredentials: true, // REQUIRED for cookies
-   });
-   ```
+## Styling
 
-3. **Make requests**:
-   ```typescript
-   // Register
-   await api.post('/auth/register', {
-     email: 'user@example.com',
-     username: 'username',
-     password: 'password123',
-   });
+The frontend uses a dark gradient theme with very large fonts:
+- Titles: **4rem (64px)**
+- Headings: **3rem (48px)**
+- Large text: **2rem (32px)**
 
-   // Login
-   await api.post('/auth/login', {
-     email: 'user@example.com',
-     password: 'password123',
-   });
-
-   // Get profile (cookies sent automatically)
-   const { data } = await api.get('/users/me');
-
-   // Refresh tokens (cookies sent automatically)
-   await api.post('/auth/refresh');
-
-   // Logout
-   await api.post('/auth/logout');
-   ```
+Customize the theme in `frontend/src/styles/theme.ts`.
 
 ## Troubleshooting
 
