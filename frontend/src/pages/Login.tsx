@@ -113,6 +113,8 @@ export const Login: React.FC = () => {
 
             <FooterText>
               Don't have an account? <Link to="/register">Register</Link>
+              <br />
+              <Link to="/request-password-reset">Forgot your password?</Link>
             </FooterText>
           </Card>
         </Box>

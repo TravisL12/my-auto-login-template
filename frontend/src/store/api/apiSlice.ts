@@ -5,6 +5,10 @@ import type {
   UserResponse,
   RegisterCredentials,
   LoginCredentials,
+  RequestPasswordResetCredentials,
+  RequestPasswordResetResponse,
+  ResetPasswordCredentials,
+  ResetPasswordResponse,
 } from '../../types/auth.types';
 
 const baseQuery = fetchBaseQuery({
@@ -114,6 +118,24 @@ export const apiSlice = createApi({
         method: 'POST',
       }),
     }),
+
+    // Request password reset
+    requestPasswordReset: builder.mutation<RequestPasswordResetResponse, RequestPasswordResetCredentials>({
+      query: (credentials) => ({
+        url: '/auth/request-password-reset',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
+
+    // Reset password
+    resetPassword: builder.mutation<ResetPasswordResponse, ResetPasswordCredentials>({
+      query: (credentials) => ({
+        url: '/auth/reset-password',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
   }),
 });
 
@@ -123,4 +145,6 @@ export const {
   useLogoutMutation,
   useGetCurrentUserQuery,
   useRefreshTokensMutation,
+  useRequestPasswordResetMutation,
+  useResetPasswordMutation,
 } = apiSlice;

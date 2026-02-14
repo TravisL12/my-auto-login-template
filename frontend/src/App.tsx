@@ -9,6 +9,8 @@ import { Landing } from './pages/Landing';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { RequestPasswordReset } from './pages/RequestPasswordReset';
+import { ResetPassword } from './pages/ResetPassword';
 import { useGetCurrentUserQuery } from './store/api/apiSlice';
 import { selectIsAuthenticated } from './store';
 
@@ -55,6 +57,14 @@ function App() {
             <Route
               path="/login"
               element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+            />
+            <Route
+              path="/request-password-reset"
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RequestPasswordReset />}
+            />
+            <Route
+              path="/reset-password"
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ResetPassword />}
             />
             <Route
               path="/dashboard"

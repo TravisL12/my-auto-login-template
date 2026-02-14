@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { hash, verify } from '@node-rs/argon2';
@@ -7,6 +7,9 @@ import { users } from '../database/schema/user.schema';
 import { eq } from 'drizzle-orm';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -201,5 +204,94 @@ export class AuthService {
     } catch (error) {
       return false;
     }
+  }
+
+  async requestPasswordReset(requestPasswordResetDto: RequestPasswordResetDto) {
+    const { email } = requestPasswordResetDto;
+
+    // Find user by email
+    const [user] = await this.databaseService.db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (!user) {
+      throw new NotFoundException('User with this email not found');
+    }
+
+    // Generate a random reset token (32 bytes = 64 hex characters)
+    const resetToken = randomBytes(32).toString('hex');
+
+    // Hash the token before storing
+    const hashedResetToken = await this.hashData(resetToken);
+
+    // Set expiry to 1 hour from now
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Store hashed token and expiry in database
+    await this.databaseService.db
+      .update(users)
+      .set({
+        resetToken: hashedResetToken,
+        resetTokenExpiry,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, user.id));
+
+    // Return the plain token to the user (this would normally be sent via email)
+    return {
+      message: 'Password reset token generated',
+      resetToken,
+      expiresAt: resetTokenExpiry,
+      email: user.email,
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { resetToken, newPassword } = resetPasswordDto;
+
+    // Find user with a non-expired reset token
+    const [user] = await this.databaseService.db
+      .select()
+      .from(users)
+      .where(eq(users.resetToken, resetToken))
+      .limit(1);
+
+    // Check if user exists and has a reset token
+    if (!user || !user.resetToken || !user.resetTokenExpiry) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Verify the token matches
+    const isTokenValid = await this.verifyPassword(user.resetToken, resetToken);
+
+    if (!isTokenValid) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Check if token is expired
+    if (new Date() > user.resetTokenExpiry) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Hash the new password
+    const hashedPassword = await this.hashData(newPassword);
+
+    // Update password and clear reset token
+    await this.databaseService.db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+        refreshToken: null, // Clear refresh token for security
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, user.id));
+
+    return {
+      message: 'Password reset successfully',
+    };
   }
 }

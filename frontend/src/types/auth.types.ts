@@ -25,3 +25,23 @@ export interface AuthResponse {
 export interface UserResponse {
   user: User;
 }
+
+export interface RequestPasswordResetCredentials {
+  email: string;
+}
+
+export interface RequestPasswordResetResponse {
+  message: string;
+  resetToken: string;
+  expiresAt: string;
+  email: string;
+}
+
+export interface ResetPasswordCredentials {
+  resetToken: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
